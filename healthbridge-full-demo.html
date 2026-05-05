@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthBridge — Dorothy's Full Patient Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   GLOBAL TOKENS
+═══════════════════════════════════════ */
+:root {
+  /* visit 1 - endocrinology */
+  --sage:        #4A7C6F;
+  --sage-light:  #7BAF9E;
+  --sage-pale:   #E8F2EF;
+  --sage-dark:   #2D5049;
+  /* visit 2 - cardiology */
+  --teal:        #2A6B7C;
+  --teal-light:  #5A9DAE;
+  --teal-pale:   #E6F3F6;
+  --teal-dark:   #1A4A57;
+  --crimson:     #8B2635;
+  --crimson-pale:#F9ECED;
+  /* visit 3 - obgyn */
+  --rose:        #8B3A5A;
+  --rose-light:  #C47A96;
+  --rose-pale:   #F9ECF2;
+  --rose-dark:   #5C1F3A;
+  --lavender:    #6B5B9A;
+  --lavender-pale:#F0EDF8;
+  /* shared */
+  --plum:        #6B4C7A;
+  --plum-light:  #E8DFF0;
+  --amber:       #C4722A;
+  --amber-light: #F5E6D3;
+  --amber-pale:  #FDF6EE;
+  --gold:        #B8860B;
+  --gold-light:  #F5EDD0;
+  --gold-pale:   #FDFAF0;
+  /* neutral */
+  --warm-white:  #FAF8F5;
+  --off-white:   #F2EFE9;
+  --text-dark:   #1C1A17;
+  --text-mid:    #4A4640;
+  --text-muted:  #8A857D;
+  --border:      #E0DBD3;
+  --card-bg:     #FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--warm-white);color:var(--text-dark);min-height:100vh;}
+
+/* ═══════════════════════════════════════
+   TOP APP BAR
+═══════════════════════════════════════ */
+.app-bar{
+  position:sticky;top:0;z-index:200;
+  display:flex;flex-direction:column;
+}
+.brand-row{
+  background:#1C1A17;
+  padding:0 2rem;
+  height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{font-family:'DM Serif Display',serif;font-size:22px;color:#fff;letter-spacing:-0.3px;}
+.logo span{color:#7BAF9E;}
+.brand-right{display:flex;align-items:center;gap:12px;}
+.pitch-tag{
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+  color:rgba(255,255,255,0.75);font-size:11px;letter-spacing:0.08em;
+  text-transform:uppercase;padding:3px 10px;border-radius:20px;
+}
+.patient-pill{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+  border-radius:20px;padding:4px 12px 4px 6px;
+}
+.pp-avatar{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--amber-light);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;color:var(--amber);
+}
+.pp-name{font-size:12px;color:rgba(255,255,255,0.85);}
+
+/* visit nav */
+.visit-nav{
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:stretch;
+  padding:0 2rem;
+  overflow-x:auto;
+}
+.vnav-btn{
+  display:flex;align-items:center;gap:9px;
+  padding:0 20px;height:48px;
+  border:none;background:transparent;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  color:var(--text-muted);
+  border-bottom:2px solid transparent;
+  white-space:nowrap;transition:all 0.2s;flex-shrink:0;
+}
+.vnav-btn:hover{color:var(--text-dark);}
+.vnav-btn.active{color:var(--text-dark);border-bottom-color:var(--text-dark);}
+.vnav-btn[data-visit="1"].active{color:var(--sage);border-bottom-color:var(--sage);}
+.vnav-btn[data-visit="2"].active{color:var(--teal);border-bottom-color:var(--teal);}
+.vnav-btn[data-visit="3"].active{color:var(--rose);border-bottom-color:var(--rose);}
+.vnav-btn[data-visit="4"].active{color:var(--plum);border-bottom-color:var(--plum);}
+.vnav-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--border);flex-shrink:0;transition:background 0.2s;
+}
+.vnav-btn[data-visit="1"].active .vnav-dot{background:var(--sage);}
+.vnav-btn[data-visit="2"].active .vnav-dot{background:var(--teal);}
+.vnav-btn[data-visit="3"].active .vnav-dot{background:var(--rose);}
+.vnav-btn[data-visit="4"].active .vnav-dot{background:var(--plum);}
+.vnav-btn.complete .vnav-dot{background:var(--sage);}
+.vnav-check{
+  font-size:11px;color:var(--sage);
+  background:var(--sage-pale);border-radius:50%;
+  width:16px;height:16px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.vnav-divider{width:1px;background:var(--border);margin:10px 0;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   VISIT PAGES
+═══════════════════════════════════════ */
+.visit-page{display:none;}
+.visit-page.active{display:block;animation:pageIn 0.3s ease;}
+@keyframes pageIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ═══════════════════════════════════════
+   PATIENT BANNERS
+═══════════════════════════════════════ */
+.banner{padding:1.75rem 2rem 0;position:relative;}
+.banner::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:36px;background:var(--warm-white);border-radius:36px 36px 0 0;
+}
+.banner-v1{background:linear-gradient(135deg,var(--sage-dark) 0%,#3D6B5C 60%,var(--sage) 100%);}
+.banner-v2{background:linear-gradient(135deg,var(--teal-dark) 0%,#2A6B7C 60%,var(--teal) 100%);}
+.banner-v3{background:linear-gradient(135deg,var(--rose-dark) 0%,#7A2E4E 55%,var(--lavender) 100%);}
+
+.banner-inner{max-width:980px;margin:0 auto;padding-bottom:2.25rem;}
+.continuity-bar{
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
+  border-radius:10px;padding:9px 14px;
+  display:flex;align-items:flex-start;gap:10px;
+  margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.82);line-height:1.5;
+}
+.continuity-bar strong{color:#fff;}
+.cont-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;
+}
+.cont-dot.v1{background:#7BCFB0;box-shadow:0 0 0 3px rgba(123,207,176,0.3);}
+.cont-dot.v2{background:#7EC8D8;box-shadow:0 0 0 3px rgba(126,200,216,0.3);}
+.cont-dot.v3{background:#C4A8E0;box-shadow:0 0 0 3px rgba(196,168,224,0.3);}
+.visit-chips{display:flex;gap:7px;margin-top:7px;flex-wrap:wrap;}
+.vchip{
+  font-size:11px;padding:2px 9px;border-radius:20px;
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
+  color:rgba(255,255,255,0.8);
+}
+.vchip.done{background:rgba(74,124,111,0.3);border-color:rgba(74,124,111,0.5);color:#A8D5C8;}
+.vchip.current-v2{background:rgba(42,107,124,0.3);border-color:rgba(90,157,174,0.5);color:#A8D8E4;}
+.vchip.current-v3{background:rgba(139,58,90,0.3);border-color:rgba(196,120,150,0.5);color:#F5C0D5;}
+
+.patient-row{display:flex;align-items:flex-end;gap:1.5rem;}
+.pat-avatar{
+  width:68px;height:68px;border-radius:50%;
+  border:3px solid rgba(255,255,255,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Serif Display',serif;font-size:24px;flex-shrink:0;
+}
+.pat-avatar.v1{background:var(--amber-light);color:var(--amber);}
+.pat-avatar.v2{background:var(--gold-light);color:var(--gold);}
+.pat-avatar.v3{background:rgba(255,255,255,0.15);color:#fff;}
+.pat-name{font-family:'DM Serif Display',serif;font-size:23px;color:#fff;margin-bottom:3px;}
+.pat-meta{font-size:13px;color:rgba(255,255,255,0.72);margin-bottom:8px;}
+.ctag{
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
+  color:rgba(255,255,255,0.88);font-size:11px;padding:3px 10px;border-radius:20px;
+}
+.spec-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.spec-chip{
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
+  border-radius:9px;padding:7px 13px;color:rgba(255,255,255,0.85);font-size:12px;
+}
+.spec-chip strong{display:block;color:#fff;font-size:13px;font-weight:500;}
+.doc-chip{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
+  border-radius:10px;padding:7px 13px;color:#fff;font-size:13px;
+}
+.doc-av{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;color:#fff;
+}
+.doc-av.v1{background:var(--sage);}
+.doc-av.v2{background:var(--teal);}
+.doc-av.v3{background:var(--rose);}
+.doc-chip strong{display:block;font-size:13px;}
+.doc-chip span{font-size:11px;color:rgba(255,255,255,0.68);}
+.alert-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11.5px;padding:4px 12px;border-radius:20px;margin-top:9px;
+}
+.alert-pill.v2{background:rgba(184,134,11,0.25);border:1px solid rgba(184,134,11,0.4);color:#FFD875;}
+.alert-pill.v3{background:rgba(107,91,154,0.35);border:1px solid rgba(196,168,224,0.4);color:#C4A8E0;}
+
+/* ═══════════════════════════════════════
+   MAIN CONTENT AREA
+═══════════════════════════════════════ */
+.main{max-width:980px;margin:0 auto;padding:1.5rem 2rem 4rem;}
+
+/* phase tabs */
+.phase-nav{
+  display:flex;gap:0;margin-bottom:2rem;
+  background:var(--off-white);border-radius:14px;
+  padding:6px;border:1px solid var(--border);
+}
+.phase-btn{
+  flex:1;padding:10px 12px;border-radius:10px;border:none;
+  background:transparent;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  color:var(--text-muted);transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  white-space:nowrap;
+}
+.phase-btn .pdot{
+  width:8px;height:8px;border-radius:50%;
+  background:currentColor;opacity:0.4;transition:opacity 0.2s;
+}
+.phase-btn.active{color:#fff;}
+.phase-btn.active .pdot{opacity:1;}
+
+/* visit 1 phase colors */
+.v1-pre.active{background:var(--sage);}
+.v1-during.active{background:var(--amber);}
+.v1-post.active{background:var(--plum);}
+/* visit 2 */
+.v2-pre.active{background:var(--teal);}
+.v2-during.active{background:var(--crimson);}
+.v2-post.active{background:var(--plum);}
+/* visit 3 */
+.v3-pre.active{background:var(--rose);}
+.v3-during.active{background:var(--lavender);}
+.v3-post.active{background:var(--sage);}
+.v3-synth.active{background:var(--text-dark);}
+
+.phase-panel{display:none;animation:fadeIn 0.3s ease;}
+.phase-panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* cards */
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem;}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1.25rem;}
+.card.full{grid-column:1/-1;}
+.card.gold-alert{border-color:var(--gold);background:var(--gold-pale);}
+.card-label{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;}
+.cl-sage{color:var(--sage);} .cl-amber{color:var(--amber);} .cl-plum{color:var(--plum);}
+.cl-teal{color:var(--teal);} .cl-crimson{color:var(--crimson);} .cl-gold{color:var(--gold);}
+.cl-rose{color:var(--rose);} .cl-lavender{color:var(--lavender);}
+.card h3{font-size:15px;font-weight:500;color:var(--text-dark);margin-bottom:10px;line-height:1.3;}
+
+/* section head */
+.section-head{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem;}
+.phase-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.pi-sage{background:var(--sage-pale);}
+.pi-amber{background:var(--amber-light);}
+.pi-plum{background:var(--plum-light);}
+.pi-teal{background:var(--teal-pale);}
+.pi-crimson{background:var(--crimson-pale);}
+.pi-rose{background:var(--rose-pale);}
+.pi-lavender{background:var(--lavender-pale);}
+.pi-dark{background:var(--off-white);}
+.section-head h2{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text-dark);margin-bottom:3px;}
+.section-head p{font-size:14px;color:var(--text-muted);line-height:1.5;}
+
+/* ai bubble */
+.ai-bubble{border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px;}
+.ab-sage{background:var(--sage-pale);border-left:3px solid var(--sage);}
+.ab-amber{background:var(--amber-pale);border-left:3px solid var(--amber);}
+.ab-plum{background:var(--plum-light);border-left:3px solid var(--plum);}
+.ab-teal{background:var(--teal-pale);border-left:3px solid var(--teal);}
+.ab-crimson{background:var(--crimson-pale);border-left:3px solid var(--crimson);}
+.ab-gold{background:var(--gold-light);border-left:3px solid var(--gold);}
+.ab-rose{background:var(--rose-pale);border-left:3px solid var(--rose);}
+.ab-lavender{background:var(--lavender-pale);border-left:3px solid var(--lavender);}
+.ai-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;}
+.ai-bubble p{font-size:13.5px;color:var(--text-mid);line-height:1.6;}
+
+/* q list */
+.q-list{list-style:none;}
+.q-list li{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--off-white);font-size:13px;color:var(--text-mid);line-height:1.4;}
+.q-list li:last-child{border-bottom:none;}
+.q-num{min-width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.qn-sage{background:var(--sage-pale);color:var(--sage);}
+.qn-amber{background:var(--amber-light);color:var(--amber);}
+.qn-plum{background:var(--plum-light);color:var(--plum);}
+.qn-teal{background:var(--teal-pale);color:var(--teal);}
+.qn-crimson{background:var(--crimson-pale);color:var(--crimson);}
+.qn-rose{background:var(--rose-pale);color:var(--rose);}
+.qn-lavender{background:var(--lavender-pale);color:var(--lavender);}
+
+/* med rows */
+.med-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--off-white);font-size:13px;}
+.med-row:last-child{border-bottom:none;}
+.med-name{font-weight:500;color:var(--text-dark);}
+.med-dose{color:var(--text-muted);font-size:12px;}
+.med-flag{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.mf-ok{background:#E8F5E9;color:#2E7D32;}
+.mf-note{background:var(--amber-light);color:var(--amber);}
+
+/* transcript */
+.transcript-box{background:var(--off-white);border-radius:10px;padding:1rem;max-height:280px;overflow-y:auto;font-size:13px;}
+.tline{margin-bottom:10px;line-height:1.5;}
+.tai{border-radius:0 6px 6px 0;padding:6px 10px;font-size:12px;font-style:italic;}
+.tai-sage{background:var(--sage-pale);border-left:2px solid var(--sage);color:var(--sage);}
+.tai-amber{background:var(--amber-pale);border-left:2px solid var(--amber);color:var(--amber);}
+.tai-lavender{background:var(--lavender-pale);border-left:2px solid var(--lavender);color:var(--lavender);}
+.tai-gold{background:var(--gold-light);border-left:2px solid var(--gold);color:var(--gold);}
+.tai-connect{background:var(--sage-pale);border-left:2px solid var(--sage);color:var(--sage);}
+
+/* checklist */
+.check-list{list-style:none;}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--off-white);font-size:13px;color:var(--text-mid);line-height:1.4;}
+.check-item:last-child{border-bottom:none;}
+.check-box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all 0.15s;}
+.check-box.chk-sage.checked{background:var(--sage);border-color:var(--sage);color:#fff;}
+.check-box.chk-teal.checked{background:var(--teal);border-color:var(--teal);color:#fff;}
+.check-box.chk-plum.checked{background:var(--plum);border-color:var(--plum);color:#fff;}
+.check-item.done .check-text{text-decoration:line-through;color:var(--text-muted);}
+
+/* risk bars */
+.risk-label-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:4px;}
+.risk-bar{height:8px;background:var(--off-white);border-radius:4px;overflow:hidden;margin-bottom:8px;}
+.risk-fill{height:100%;border-radius:4px;}
+
+/* timeline */
+.timeline{position:relative;padding-left:24px;}
+.timeline::before{content:'';position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:var(--border);border-radius:2px;}
+.tl-item{position:relative;margin-bottom:14px;font-size:13px;color:var(--text-mid);line-height:1.4;}
+.tl-item::before{content:'';position:absolute;left:-20px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--sage);border:2px solid var(--card-bg);}
+.tl-item.tl-rose::before{background:var(--rose);}
+.tl-item.tl-teal::before{background:var(--teal);}
+.tl-item.tl-lavender::before{background:var(--lavender);}
+.tl-item.tl-gold::before{background:var(--gold);}
+.tl-item.tl-pending::before{background:var(--border);border:2px solid var(--text-muted);}
+.tl-item strong{display:block;font-weight:500;color:var(--text-dark);font-size:13.5px;margin-bottom:2px;}
+
+/* bp chart */
+.bp-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;}
+.bp-day{width:28px;color:var(--text-muted);font-size:11px;flex-shrink:0;}
+.bp-bg{flex:1;display:flex;flex-direction:column;gap:2px;}
+.bp-track{background:var(--off-white);border-radius:3px;height:7px;overflow:hidden;}
+.bp-sys-fill{background:var(--crimson);height:7px;border-radius:3px;}
+.bp-dia-fill{background:var(--teal-light);height:7px;border-radius:3px;}
+.bp-val{font-size:11px;color:var(--text-mid);min-width:58px;text-align:right;}
+.bp-val.hi{color:var(--crimson);font-weight:500;}
+.bp-target{border-top:1.5px dashed var(--gold);margin:4px 0 6px;position:relative;}
+.bp-target::after{content:'Target: 130/80';position:absolute;right:0;top:-9px;font-size:10px;color:var(--gold);background:var(--card-bg);padding:0 4px;}
+
+/* sleep chart */
+.sleep-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sleep-day{width:32px;color:var(--text-muted);font-size:11px;flex-shrink:0;}
+.sleep-track{flex:1;background:var(--off-white);border-radius:3px;height:10px;overflow:hidden;}
+.sleep-fill{height:10px;border-radius:3px;}
+.sf-poor{background:var(--rose-light);}
+.sf-fair{background:var(--gold);}
+.sleep-val{font-size:11px;min-width:45px;text-align:right;}
+.sleep-target{border-top:1.5px dashed var(--sage);margin:6px 0 4px;position:relative;}
+.sleep-target::after{content:'Target: 7–8 hrs';position:absolute;right:0;top:-9px;font-size:10px;color:var(--sage);background:var(--card-bg);padding:0 4px;}
+
+/* stat boxes */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.stat-box{background:var(--off-white);border-radius:10px;padding:10px 12px;}
+.stat-label{font-size:11px;color:var(--text-muted);margin-bottom:3px;}
+.stat-val{font-size:21px;font-weight:500;}
+.stat-sub{font-size:11px;color:var(--text-muted);margin-top:1px;}
+
+/* hormone grid */
+.hormone-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.h-box{background:var(--off-white);border-radius:10px;padding:10px 12px;}
+.h-label{font-size:11px;color:var(--text-muted);margin-bottom:3px;}
+.h-val{font-size:19px;font-weight:500;}
+.h-sub{font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.3;}
+
+/* decision compare */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.cmp-card{border:1.5px solid var(--border);border-radius:10px;padding:12px;}
+.cmp-card.recommended{border-color:var(--teal);}
+.cmp-card.selected{border-color:var(--rose);}
+.cmp-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-bottom:7px;}
+.cb-rec{background:var(--teal-pale);color:var(--teal);}
+.cb-cur{background:var(--gold-light);color:var(--gold);}
+.cb-upd{background:var(--rose-pale);color:var(--rose);}
+.cmp-card h4{font-size:14px;font-weight:500;color:var(--text-dark);margin-bottom:6px;}
+.cmp-card p{font-size:12.5px;color:var(--text-mid);line-height:1.5;}
+.cmp-list{list-style:none;margin-top:8px;}
+.cmp-list li{font-size:12px;color:var(--text-mid);padding:2px 0;}
+.cmp-list.pros li::before{content:"✓ ";color:var(--teal);}
+.cmp-list.pros-rose li::before{content:"✓ ";color:var(--rose);}
+.cmp-list.cons li::before{content:"△ ";color:var(--gold);}
+
+/* ═══════════════════════════════════════
+   SYNTHESIS / FULL JOURNEY
+═══════════════════════════════════════ */
+.synth-hero{
+  background:linear-gradient(135deg,#1C1A17 0%,#2D2820 100%);
+  border-radius:16px;padding:2rem;margin-bottom:1.5rem;
+  position:relative;overflow:hidden;
+}
+.synth-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:200px;height:200px;border-radius:50%;
+  background:rgba(107,91,154,0.15);
+}
+.sh-label{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:8px;}
+.synth-hero h2{font-family:'DM Serif Display',serif;font-size:26px;color:#fff;margin-bottom:8px;line-height:1.3;}
+.synth-hero p{font-size:14px;color:rgba(255,255,255,0.68);line-height:1.6;max-width:600px;}
+
+.synth-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem;}
+.synth-stat{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+.ss-num{font-size:28px;font-weight:500;line-height:1;margin-bottom:4px;}
+.ss-label{font-size:12px;color:var(--text-muted);line-height:1.4;}
+
+.spec-row-synth{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem;}
+.spec-card-s{border-radius:14px;padding:1.25rem;border:1px solid transparent;}
+.sc-endo{background:var(--sage-pale);border-color:rgba(74,124,111,0.3);}
+.sc-cardio{background:var(--teal-pale);border-color:rgba(42,107,124,0.3);}
+.sc-obgyn{background:var(--rose-pale);border-color:rgba(139,58,90,0.3);}
+.sc-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;}
+.sc-endo .sc-label{color:var(--sage);}
+.sc-cardio .sc-label{color:var(--teal);}
+.sc-obgyn .sc-label{color:var(--rose);}
+.spec-card-s h4{font-size:14px;font-weight:500;color:var(--text-dark);margin-bottom:8px;}
+.spec-card-s ul{list-style:none;}
+.spec-card-s ul li{font-size:12.5px;color:var(--text-mid);padding:3px 0;border-bottom:1px solid rgba(0,0,0,0.06);line-height:1.4;}
+.spec-card-s ul li:last-child{border-bottom:none;}
+.spec-card-s ul li::before{content:"· ";color:var(--text-muted);}
+
+.med-table{width:100%;border-collapse:collapse;font-size:13px;}
+.med-table th{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);}
+.med-table td{padding:9px 10px;border-bottom:1px solid var(--off-white);color:var(--text-mid);vertical-align:top;}
+.med-table tr:last-child td{border-bottom:none;}
+.med-table td:first-child{font-weight:500;color:var(--text-dark);}
+.mtag{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;}
+.mt-v1{background:var(--sage-pale);color:var(--sage);}
+.mt-v2{background:var(--teal-pale);color:var(--teal);}
+.mt-v3{background:var(--rose-pale);color:var(--rose);}
+.mt-ex{background:var(--off-white);color:var(--text-muted);}
+
+.roadmap-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;}
+.rm-header{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:8px 8px 0 0;}
+.rh-now{background:var(--text-dark);color:#fff;}
+.rh-m1{background:var(--sage-pale);color:var(--sage);}
+.rh-m3{background:var(--teal-pale);color:var(--teal);}
+.rh-m6{background:var(--lavender-pale);color:var(--lavender);}
+.rm-items{border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;}
+.rm-item{padding:8px 10px;font-size:12px;color:var(--text-mid);border-bottom:1px solid var(--off-white);line-height:1.4;}
+.rm-item:last-child{border-bottom:none;}
+.rm-item::before{content:"→ ";color:var(--text-muted);font-size:11px;}
+
+.pitch-close{
+  background:linear-gradient(135deg,var(--rose-dark),var(--lavender));
+  border-radius:16px;padding:2rem;margin-top:1.5rem;text-align:center;
+}
+.pitch-close h3{font-family:'DM Serif Display',serif;font-size:24px;color:#fff;margin-bottom:10px;}
+.pitch-close p{font-size:14px;color:rgba(255,255,255,0.75);line-height:1.7;max-width:560px;margin:0 auto;}
+
+/* ═══════════════════════════════════════
+   JOURNEY PROGRESS BAR
+═══════════════════════════════════════ */
+.journey-bar{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-top:1.5rem;}
+.jb-label{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;}
+.jb-track{display:flex;align-items:center;}
+.jb-step{flex:1;text-align:center;font-size:11px;color:var(--text-muted);}
+.jb-dot{width:26px;height:26px;border-radius:50%;background:var(--off-white);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;transition:all 0.3s;}
+.jb-step.jb-complete .jb-dot{background:var(--sage);border-color:var(--sage);color:#fff;}
+.jb-step.jb-active-v1 .jb-dot{background:var(--sage);border-color:var(--sage);color:#fff;box-shadow:0 0 0 4px var(--sage-pale);}
+.jb-step.jb-active-v2 .jb-dot{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 0 0 4px var(--teal-pale);}
+.jb-step.jb-active-v3 .jb-dot{background:var(--rose);border-color:var(--rose);color:#fff;box-shadow:0 0 0 4px var(--rose-pale);}
+.jb-step.jb-active-synth .jb-dot{background:var(--plum);border-color:var(--plum);color:#fff;box-shadow:0 0 0 4px var(--plum-light);}
+.jb-conn{flex:0 0 18px;height:2px;background:var(--border);margin-bottom:22px;}
+.jb-conn.jb-done{background:var(--sage);}
+
+/* footer */
+.app-footer{text-align:center;padding:1rem;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);background:var(--card-bg);margin-top:2rem;}
+
+/* insight boxes */
+.insight-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
+.insight-box{background:var(--off-white);border-radius:10px;padding:12px;text-align:center;}
+.insight-icon{font-size:20px;margin-bottom:5px;}
+.insight-title{font-size:12px;font-weight:500;color:var(--text-dark);margin-bottom:2px;}
+.insight-sub{font-size:11px;color:var(--text-muted);line-height:1.4;}
+
+/* drug info grid */
+.drug-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
+.di-box{background:var(--off-white);padding:10px;border-radius:8px;}
+.di-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.di-box p{font-size:12.5px;color:var(--text-mid);line-height:1.5;}
+
+@media(max-width:680px){
+  .cards-grid{grid-template-columns:1fr;}
+  .stat-row,.hormone-grid,.drug-info-grid,.compare-grid,.synth-stats,.spec-row-synth,.roadmap-grid,.insight-row{grid-template-columns:1fr 1fr;}
+  .vnav-btn{padding:0 12px;font-size:12px;}
+  .visit-nav{padding:0 0.75rem;}
+  .main{padding:1rem 1rem 4rem;}
+  .banner{padding:1.25rem 1rem 0;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     TOP APP BAR
+═══════════════════════════════════════ -->
+<div class="app-bar">
+  <div class="brand-row">
+    <div class="logo">Health<span>Bridge</span></div>
+    <div class="brand-right">
+      <div class="patient-pill">
+        <div class="pp-avatar">DW</div>
+        <span class="pp-name">Dorothy Williams · 55 · Atlanta, GA</span>
+      </div>
+      <div class="pitch-tag">Pitch Demo</div>
+    </div>
+  </div>
+  <nav class="visit-nav" role="tablist">
+    <button class="vnav-btn active" data-visit="1" onclick="switchVisit(1)">
+      <span class="vnav-dot"></span>
+      Visit 1 — Endocrinology
+    </button>
+    <div class="vnav-divider"></div>
+    <button class="vnav-btn" data-visit="2" onclick="switchVisit(2)">
+      <span class="vnav-dot"></span>
+      Visit 2 — Cardiology
+    </button>
+    <div class="vnav-divider"></div>
+    <button class="vnav-btn" data-visit="3" onclick="switchVisit(3)">
+      <span class="vnav-dot"></span>
+      Visit 3 — OB-GYN / Menopause
+    </button>
+    <div class="vnav-divider"></div>
+    <button class="vnav-btn" data-visit="4" onclick="switchVisit(4)">
+      <span class="vnav-dot"></span>
+      ★ Full Journey View
+    </button>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════════════
+     VISIT 1 — ENDOCRINOLOGY
+═══════════════════════════════════════ -->
+<div class="visit-page active" id="visit-1">
+  <div class="banner banner-v1">
+    <div class="banner-inner">
+      <div class="patient-row">
+        <div class="pat-avatar v1">DW</div>
+        <div style="flex:1;">
+          <div class="pat-name">Dorothy Williams</div>
+          <div class="pat-meta">55 years old · Atlanta, GA · 3 active specialists</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+            <span class="ctag">Type 2 Diabetes</span>
+            <span class="ctag">Hypertension</span>
+            <span class="ctag">Perimenopause</span>
+            <span class="ctag">Stage 2 CKD</span>
+          </div>
+          <div class="spec-chips">
+            <div class="spec-chip"><strong>Dr. Rivera</strong>Endocrinologist</div>
+            <div class="spec-chip"><strong>Dr. Okonkwo</strong>Cardiologist</div>
+            <div class="spec-chip"><strong>Dr. Patel</strong>OB-GYN / Menopause</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <nav class="phase-nav">
+      <button class="phase-btn v1-pre active" onclick="switchPhase('v1','pre')"><span class="pdot"></span>Before the Visit</button>
+      <button class="phase-btn v1-during" onclick="switchPhase('v1','during')"><span class="pdot"></span>During the Visit</button>
+      <button class="phase-btn v1-post" onclick="switchPhase('v1','post')"><span class="pdot"></span>After the Visit</button>
+    </nav>
+
+    <!-- V1 PRE -->
+    <div class="phase-panel active" id="v1-pre">
+      <div class="section-head">
+        <div class="phase-icon pi-sage">🌅</div>
+        <div><h2>Before the Visit — Prepare & Empower</h2><p>Dorothy has an appointment with Dr. Rivera (Endocrinology) on Thursday. HealthBridge activates 48 hours before.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-sage">HealthBridge AI · Pre-visit check-in</div>
+          <div class="ai-bubble ab-sage"><div class="ai-label cl-sage">🤖 HealthBridge</div><p>"Good morning, Dorothy! Your appointment with Dr. Rivera is in 2 days. I noticed your last A1c was 7.8% — up slightly from 7.4% six months ago. I've put together some questions you might want to raise, and I found something important about one of your medications you should know before you go."</p></div>
+          <div class="ai-bubble ab-sage"><div class="ai-label cl-sage">🤖 HealthBridge</div><p>"Also — I pulled your blood pressure logs from the past 30 days. Your morning readings have been averaging 142/88, which is above your target. Dr. Okonkwo may want to know. Want me to create a summary you can share?"</p></div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-sage">Smart question generator</div>
+          <h3>Suggested questions for Dr. Rivera</h3>
+          <ul class="q-list">
+            <li><span class="q-num qn-sage">1</span>My A1c went up — should we adjust my Metformin or add something new?</li>
+            <li><span class="q-num qn-sage">2</span>I've been more tired than usual — could that be my blood sugar or something else?</li>
+            <li><span class="q-num qn-sage">3</span>My hot flashes are worse at night — could menopause be affecting my glucose?</li>
+            <li><span class="q-num qn-sage">4</span>Should I be checking my kidneys more often given my CKD stage?</li>
+            <li><span class="q-num qn-sage">5</span>What should I eat before my morning readings for more accurate results?</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-label cl-sage">Medication review</div>
+          <h3>Current medications · visit context</h3>
+          <div class="med-row"><div><div class="med-name">Metformin</div><div class="med-dose">1000mg · twice daily</div></div><span class="med-flag mf-ok">On track</span></div>
+          <div class="med-row"><div><div class="med-name">Lisinopril</div><div class="med-dose">10mg · once daily</div></div><span class="med-flag mf-note">Discuss dose ↑</span></div>
+          <div class="med-row"><div><div class="med-name">Amlodipine</div><div class="med-dose">5mg · once daily</div></div><span class="med-flag mf-ok">On track</span></div>
+          <div class="med-row"><div><div class="med-name">Estradiol patch</div><div class="med-dose">0.05mg/day · weekly</div></div><span class="med-flag mf-note">Ask Dr. Rivera</span></div>
+          <div class="med-row"><div><div class="med-name">Vitamin D3</div><div class="med-dose">2000 IU · daily</div></div><span class="med-flag mf-ok">On track</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-sage">Appointment briefing</div>
+          <h3>What to expect at today's visit</h3>
+          <div class="ai-bubble ab-sage"><div class="ai-label cl-sage">🤖 Plain language</div><p>"Dr. Rivera will likely order an A1c blood test, check your kidney function, and review your glucose log. She may discuss SGLT2 inhibitors — a class of medication that helps blood sugar AND protects kidneys. That could be very relevant for you."</p></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">⏱ Estimated visit: 30 min · 📍 Emory Midtown</div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-sage">Wellbeing check-in</div>
+          <h3>How are you feeling about this visit?</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <button style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--sage);background:var(--sage-pale);color:var(--sage);font-size:12px;font-family:inherit;cursor:pointer;">😌 Calm</button>
+            <button style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-size:12px;font-family:inherit;cursor:pointer;">😟 Nervous</button>
+            <button style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-size:12px;font-family:inherit;cursor:pointer;">😤 Frustrated</button>
+          </div>
+          <p style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Dorothy, it's completely normal to feel anxious about your A1c. Remember: your doctor is your partner. You have every right to ask questions and take time to understand your options.</p>
+        </div>
+        <div class="card">
+          <div class="card-label cl-sage">Cross-specialist intelligence</div>
+          <h3>Coordination alert</h3>
+          <div class="ai-bubble ab-sage"><div class="ai-label cl-sage">🤖 HealthBridge</div><p>"Heads up: Dr. Okonkwo increased your Lisinopril last month, but Dr. Rivera doesn't know yet. I can generate a one-page care summary for you to bring Thursday so both doctors are on the same page."</p></div>
+          <button style="margin-top:10px;padding:8px 16px;background:var(--sage);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:500;">Generate care summary →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- V1 DURING -->
+    <div class="phase-panel" id="v1-during">
+      <div class="section-head">
+        <div class="phase-icon pi-amber">🎙️</div>
+        <div><h2>During the Visit — Advocate in Real Time</h2><p>Dorothy is in the exam room with Dr. Rivera. HealthBridge is listening (with consent), translating, and quietly coaching.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-amber">Live session · Endocrinology · Dr. Rivera</div>
+          <h3 style="margin-bottom:10px;">Visit transcript — plain language mode on</h3>
+          <div class="transcript-box">
+            <div class="tline"><strong style="color:var(--sage-dark);">Dr. Rivera:</strong> Dorothy, your A1c came back at 7.9. We need to talk about tightening your glucose control.</div>
+            <div class="tline tai tai-sage">💡 <em>A1c = average blood sugar over 3 months. 7.9% means your average glucose is around 185 mg/dL. Goal is usually under 7%.</em></div>
+            <div class="tline"><strong style="color:var(--gold);">Dorothy:</strong> Is that really bad? What does that mean for my kidneys?</div>
+            <div class="tline"><strong style="color:var(--sage-dark);">Dr. Rivera:</strong> Good question. Your eGFR is 62, which puts you in Stage 2 CKD. I want to add an SGLT2 inhibitor — specifically Jardiance — which helps both glucose and kidney protection.</div>
+            <div class="tline tai tai-sage">💡 <em>eGFR measures kidney function. 62 = mild reduction (Stage 2). SGLT2 inhibitors like Jardiance lower blood sugar AND slow kidney disease. Strong recommendation for you.</em></div>
+            <div class="tline"><strong style="color:var(--gold);">Dorothy:</strong> I've been having hot flashes at night and I'm not sleeping well. Could that be messing with my sugar?</div>
+            <div class="tline"><strong style="color:var(--sage-dark);">Dr. Rivera:</strong> Absolutely — sleep disruption and hormonal changes both raise cortisol, which raises glucose. Are you still using the estradiol patch?</div>
+            <div class="tline tai tai-sage">💡 <em>Cortisol is a stress hormone that makes blood sugar harder to control. Poor sleep is a real diabetes trigger — Dorothy is right to bring this up.</em></div>
+            <div class="tline"><strong style="color:var(--sage-dark);">Dr. Rivera:</strong> I'm going to loop in Dr. Patel about optimizing your HRT. I'd also like labs in 3 months to check your A1c and kidney function.</div>
+            <div class="tline tai tai-sage">💡 <em>HRT = hormone replacement therapy. Dr. Rivera is coordinating with your OB-GYN — that's exactly the right approach. Note this follow-up date.</em></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-amber">Coaching nudges</div>
+          <h3>Questions to ask right now</h3>
+          <ul class="q-list">
+            <li><span class="q-num qn-amber">!</span>Ask about Jardiance cost — there's a patient assistance program</li>
+            <li><span class="q-num qn-amber">!</span>"What side effects should I watch for with Jardiance?"</li>
+            <li><span class="q-num qn-amber">!</span>"Can I take this with my Lisinopril safely?"</li>
+            <li><span class="q-num qn-amber">!</span>"Do I need a new glucose log before the next visit?"</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-label cl-amber">Patient rights</div>
+          <h3>You always have the right to:</h3>
+          <ul class="q-list">
+            <li><span class="q-num qn-amber">✓</span>Ask for a second opinion before starting any new medication</li>
+            <li><span class="q-num qn-amber">✓</span>Request written instructions in plain English</li>
+            <li><span class="q-num qn-amber">✓</span>Ask the doctor to slow down or repeat anything</li>
+            <li><span class="q-num qn-amber">✓</span>Take time to decide — you don't have to agree today</li>
+          </ul>
+        </div>
+        <div class="card full">
+          <div class="card-label cl-amber">Decision support · Jardiance (Empagliflozin)</div>
+          <h3>Dr. Rivera just recommended a new medication. Here's what you need to know.</h3>
+          <div class="drug-info-grid">
+            <div class="di-box"><div class="di-label cl-sage">What it does</div><p>Lowers blood sugar through your urine. Also proven to slow kidney disease and reduce heart failure risk.</p></div>
+            <div class="di-box"><div class="di-label cl-amber">Watch for</div><p>Increased urination, yeast infections, rare risk of DKA. Stay hydrated. Stop if you feel very unwell.</p></div>
+            <div class="di-box"><div class="di-label cl-plum">Good news</div><p>Strong evidence in Black patients with CKD. Manufacturer has a $0 copay card. Ask the front desk.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V1 POST -->
+    <div class="phase-panel" id="v1-post">
+      <div class="section-head">
+        <div class="phase-icon pi-plum">📋</div>
+        <div><h2>After the Visit — Follow Through</h2><p>Dorothy's appointment just ended. HealthBridge generates her personalized follow-up plan within minutes.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-plum">HealthBridge · Visit summary — plain language</div>
+          <h3 style="margin-bottom:12px;">Your visit with Dr. Rivera — what happened and what it means</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--off-white);"><span style="font-size:20px;">🩸</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">Your A1c is 7.9%</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Your blood sugar average has gone up slightly. The goal is below 7%. Dr. Rivera is adding a new medication to help.</span></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--off-white);"><span style="font-size:20px;">💊</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">New medication: Jardiance 10mg once daily</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Take it in the morning with or without food. It helps blood sugar AND protects your kidneys. Watch for increased urination in the first week — that's normal.</span></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--off-white);"><span style="font-size:20px;">🫀</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">Your kidneys are in Stage 2 (mild)</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">eGFR of 62 means your kidneys are working at about 62% capacity. The Jardiance is partly to slow this down. Stay hydrated and avoid NSAIDs like ibuprofen.</span></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">📅</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">Follow-up in 3 months</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Labs ordered: A1c, BMP (kidney panel), eGFR. HealthBridge will remind you 1 week before.</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-plum">Your action plan</div>
+          <h3>Next steps — check them off</h3>
+          <ul class="check-list" id="cl-v1">
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Pick up Jardiance prescription (use $0 copay card)</span></li>
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Schedule follow-up labs in 10–12 weeks</span></li>
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Message Dr. Patel about HRT + glucose interaction</span></li>
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Log morning BP for 2 weeks (share with Dr. Okonkwo)</span></li>
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Avoid ibuprofen — use acetaminophen for pain</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-label cl-plum">Health snapshot · updated today</div>
+          <h3>Current risk profile</h3>
+          <div class="risk-label-row"><span>Cardiovascular risk</span><span style="color:var(--amber);">Moderate</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:58%;background:var(--amber);"></div></div>
+          <div class="risk-label-row"><span>Glucose control</span><span style="color:var(--amber);">Needs work</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:52%;background:var(--amber);"></div></div>
+          <div class="risk-label-row"><span>Kidney function</span><span style="color:#2196F3;">Mild reduction</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:38%;background:#2196F3;"></div></div>
+          <div class="risk-label-row"><span>Medication adherence</span><span style="color:var(--sage);">Good</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:80%;background:var(--sage);"></div></div>
+        </div>
+        <div class="card full">
+          <div class="card-label cl-plum">HealthBridge · post-visit message</div>
+          <div class="ai-bubble ab-plum"><div class="ai-label cl-plum">🤖 HealthBridge</div><p>"Dorothy, you did great today. You asked important questions, and Dr. Rivera gave you a solid plan. Over the next few weeks I'll check in on how Jardiance is going, remind you about your labs, and keep an eye on your BP log. If you ever feel side effects that worry you, or just want to understand something from today's visit — I'm here."</p></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;">
+            <div style="background:var(--off-white);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">📬</div><div style="font-size:12px;font-weight:500;color:var(--text-dark);">Day 3 check-in</div><div style="font-size:11px;color:var(--text-muted);">How's Jardiance feeling?</div></div>
+            <div style="background:var(--off-white);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">📊</div><div style="font-size:12px;font-weight:500;color:var(--text-dark);">Week 2 summary</div><div style="font-size:11px;color:var(--text-muted);">BP log review for Dr. Okonkwo</div></div>
+            <div style="background:var(--off-white);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">🔬</div><div style="font-size:12px;font-weight:500;color:var(--text-dark);">Week 10 reminder</div><div style="font-size:11px;color:var(--text-muted);">Schedule A1c + kidney labs</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="journey-bar">
+      <div class="jb-label">Dorothy's care journey</div>
+      <div class="jb-track">
+        <div class="jb-step jb-active-v1"><div class="jb-dot">1</div><div>Visit 1 · Endo</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>Visit 2 · Cardio</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>Visit 3 · OB-GYN</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>Labs · Wk 10</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>3-mo Review</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     VISIT 2 — CARDIOLOGY
+═══════════════════════════════════════ -->
+<div class="visit-page" id="visit-2">
+  <div class="banner banner-v2">
+    <div class="banner-inner">
+      <div class="continuity-bar">
+        <div class="cont-dot v2"></div>
+        <div><strong>Continuity active:</strong> HealthBridge is carrying context from Visit 1 with Dr. Rivera — Jardiance started, A1c 7.9%, eGFR 62, and 30-day BP log collected since then.</div>
+      </div>
+      <div class="patient-row">
+        <div class="pat-avatar v2">DW</div>
+        <div style="flex:1;">
+          <div class="pat-name">Dorothy Williams</div>
+          <div class="pat-meta">55 years old · Atlanta, GA · Visit 2 of 3 specialists this month</div>
+          <div class="doc-chip"><div class="doc-av v2">KO</div><div><strong>Dr. Kwame Okonkwo</strong><span>Cardiologist · Emory Heart & Vascular</span></div></div>
+          <div class="alert-pill v2">⚠ 2 new alerts from Visit 1 requiring cardiology review</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <nav class="phase-nav">
+      <button class="phase-btn v2-pre active" onclick="switchPhase('v2','pre')"><span class="pdot"></span>Before the Visit</button>
+      <button class="phase-btn v2-during" onclick="switchPhase('v2','during')"><span class="pdot"></span>During the Visit</button>
+      <button class="phase-btn v2-post" onclick="switchPhase('v2','post')"><span class="pdot"></span>After the Visit</button>
+    </nav>
+
+    <!-- V2 PRE -->
+    <div class="phase-panel active" id="v2-pre">
+      <div class="section-head">
+        <div class="phase-icon pi-teal">📊</div>
+        <div><h2>Before the Visit — Data-Driven Prep</h2><p>Dorothy's cardiology appointment is tomorrow. HealthBridge has been collecting BP data since Visit 1 and surfaces a critical finding Dr. Okonkwo needs to know.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-teal">HealthBridge AI · Pre-visit briefing — cardiology</div>
+          <div class="ai-bubble ab-teal"><div class="ai-label cl-teal">🤖 HealthBridge</div><p>"Good morning, Dorothy! Tomorrow's appointment with Dr. Okonkwo is an important one. I've been tracking your blood pressure every day for the past 30 days, and your morning BP has been averaging 144/89 — consistently above your 130/80 target. I've built a report he can review in the first 2 minutes of your visit."</p></div>
+          <div class="ai-bubble ab-gold"><div class="ai-label cl-gold">⚠ Important from Visit 1</div><p>"Dr. Rivera started you on Jardiance 6 days ago. This is great news for your kidneys — but Dr. Okonkwo needs to know, because Jardiance also has heart failure benefits that may change how he thinks about your blood pressure treatment plan."</p></div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-teal">30-day blood pressure log</div>
+          <h3>Morning readings — shared with Dr. Okonkwo</h3>
+          <div style="margin-bottom:8px;">
+            <div style="display:flex;gap:10px;font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--crimson);display:inline-block;"></span>Systolic</span>
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--teal-light);display:inline-block;"></span>Diastolic</span>
+            </div>
+            <div class="bp-row"><div class="bp-day">Wk 1</div><div class="bp-bg"><div class="bp-track"><div class="bp-sys-fill" style="width:76%;"></div></div><div class="bp-track"><div class="bp-dia-fill" style="width:61%;"></div></div></div><div class="bp-val hi">146/88</div></div>
+            <div class="bp-row"><div class="bp-day">Wk 2</div><div class="bp-bg"><div class="bp-track"><div class="bp-sys-fill" style="width:73%;"></div></div><div class="bp-track"><div class="bp-dia-fill" style="width:59%;"></div></div></div><div class="bp-val hi">142/87</div></div>
+            <div class="bp-row"><div class="bp-day">Wk 3</div><div class="bp-bg"><div class="bp-track"><div class="bp-sys-fill" style="width:75%;"></div></div><div class="bp-track"><div class="bp-dia-fill" style="width:60%;"></div></div></div><div class="bp-val hi">145/89</div></div>
+            <div class="bp-row"><div class="bp-day">Wk 4</div><div class="bp-bg"><div class="bp-track"><div class="bp-sys-fill" style="width:74%;"></div></div><div class="bp-track"><div class="bp-dia-fill" style="width:60%;"></div></div></div><div class="bp-val hi">144/89</div></div>
+            <div class="bp-target"></div>
+            <div style="font-size:11px;color:var(--text-muted);">30-day avg: <strong style="color:var(--crimson);">144/88</strong> · Target: 130/80</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-teal">Smart questions · cardiology focus</div>
+          <h3>Your questions for Dr. Okonkwo</h3>
+          <ul class="q-list">
+            <li><span class="q-num qn-teal">1</span>My BP has been around 144/88 every morning — is it time to change my medication?</li>
+            <li><span class="q-num qn-teal">2</span>Dr. Rivera started me on Jardiance. Does that affect my heart treatment plan?</li>
+            <li><span class="q-num qn-teal">3</span>My kidneys are Stage 2 — how does that limit what heart meds I can take?</li>
+            <li><span class="q-num qn-teal">4</span>Should I be worried about my heart given my diabetes and BP together?</li>
+            <li><span class="q-num qn-teal">5</span>Do I need a heart scan or stress test at some point?</li>
+          </ul>
+        </div>
+        <div class="card full gold-alert">
+          <div class="card-label cl-gold">HealthBridge equity insight</div>
+          <h3>What your doctor should know about you specifically</h3>
+          <div class="ai-bubble ab-gold"><div class="ai-label cl-gold">🤖 HealthBridge</div><p>"Black women with hypertension + diabetes have a 2–3x higher cardiovascular risk than the general population. ACE inhibitors like Lisinopril are sometimes less effective for BP control in Black patients — Dr. Okonkwo may discuss adding a thiazide diuretic or a calcium channel blocker. You have every right to ask about this."</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V2 DURING -->
+    <div class="phase-panel" id="v2-during">
+      <div class="section-head">
+        <div class="phase-icon pi-crimson">🫀</div>
+        <div><h2>During the Visit — Real-Time Cardiac Advocacy</h2><p>Dorothy is in the exam room with Dr. Okonkwo. HealthBridge translates cardiology jargon, flags a drug interaction in real time, and coaches Dorothy through a treatment decision.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-crimson">Live session · Cardiology · Dr. Okonkwo</div>
+          <h3 style="margin-bottom:10px;">Visit transcript — plain language mode on</h3>
+          <div class="transcript-box">
+            <div class="tline"><strong style="color:var(--teal-dark);">Dr. Okonkwo:</strong> Dorothy, I reviewed the BP log HealthBridge sent over. Thirty days of consistent readings around 144/88 — this is sustained Stage 2 hypertension. We need to act on this today.</div>
+            <div class="tline tai tai-lavender">💡 <em>Stage 2 hypertension = systolic consistently above 140. It increases your risk of stroke, heart attack, and kidney damage. Treating it now matters.</em></div>
+            <div class="tline"><strong style="color:var(--gold);">Dorothy:</strong> I've been taking my Lisinopril every day. Why isn't it working?</div>
+            <div class="tline"><strong style="color:var(--teal-dark);">Dr. Okonkwo:</strong> Good question. ACE inhibitors like Lisinopril can be less effective as monotherapy in African American patients — this is well documented. I want to add chlorthalidone, a thiazide-like diuretic, which has very strong evidence in your population specifically.</div>
+            <div class="tline tai tai-lavender">💡 <em>A diuretic helps your kidneys remove extra fluid and sodium, which lowers blood pressure. Chlorthalidone is a preferred choice — strong evidence in Black patients with hypertension.</em></div>
+            <div class="tline"><strong style="color:var(--teal-dark);">Dr. Okonkwo:</strong> I also want to order a lipid panel — your LDL hasn't been checked in 18 months. With your risk profile, we should consider a statin.</div>
+            <div class="tline tai tai-gold">⚑ <em>HealthBridge note: Dorothy has not been on a statin before. This may be a new medication decision — ask about benefits and side effects before agreeing.</em></div>
+            <div class="tline"><strong style="color:var(--gold);">Dorothy:</strong> What is a statin exactly? And do I really need another medication?</div>
+            <div class="tline"><strong style="color:var(--teal-dark);">Dr. Okonkwo:</strong> Statins lower LDL cholesterol — the "bad" kind that clogs arteries. Let's get your lipid panel first and then decide together. Nothing is being prescribed today — I want the data first.</div>
+            <div class="tline tai tai-lavender">💡 <em>Getting labs first before deciding is the right approach. Dorothy asked exactly the right question.</em></div>
+          </div>
+        </div>
+        <div class="card full gold-alert">
+          <div class="card-label cl-gold">⚠ HealthBridge drug interaction check — real time</div>
+          <h3>Potential interaction flagged: Amlodipine + high-dose Simvastatin</h3>
+          <div class="ai-bubble ab-gold"><div class="ai-label cl-gold">🤖 HealthBridge clinical flag</div><p>"If Dr. Okonkwo prescribes a statin, Simvastatin at doses above 20mg has a known interaction with Amlodipine — it increases risk of muscle breakdown (myopathy). Safer options include Rosuvastatin or Atorvastatin. You can say: 'I read that Simvastatin and Amlodipine can interact — is there a safer statin option?'"</p></div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-crimson">Real-time coaching</div>
+          <h3>Ask Dr. Okonkwo right now</h3>
+          <ul class="q-list">
+            <li><span class="q-num qn-crimson">!</span>"What does chlorthalidone do that Lisinopril doesn't?"</li>
+            <li><span class="q-num qn-crimson">!</span>"How soon should my blood pressure come down?"</li>
+            <li><span class="q-num qn-crimson">!</span>"What symptoms should make me call your office?"</li>
+            <li><span class="q-num qn-crimson">!</span>"Can you send my lipid results through HealthBridge?"</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-label cl-crimson">Decision support · statin consideration</div>
+          <h3>If LDL comes back elevated — what to know</h3>
+          <div class="compare-grid">
+            <div class="cmp-card recommended"><div class="cmp-badge cb-rec">Evidence-backed</div><h4>If LDL ≥ 70</h4><p>Strong evidence for reducing heart attack + stroke risk in people with diabetes + hypertension.</p><ul class="cmp-list pros"><li>Lowers LDL by 30–50%</li><li>Once-daily pill</li><li>Generic = low cost</li></ul></div>
+            <div class="cmp-card"><h4>Watch for</h4><p>Most people tolerate well — some experience muscle aches or liver changes.</p><ul class="cmp-list cons"><li>Muscle soreness — tell doctor</li><li>Liver check at 3 months</li><li>Avoid Simvastatin with Amlodipine</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V2 POST -->
+    <div class="phase-panel" id="v2-post">
+      <div class="section-head">
+        <div class="phase-icon pi-plum">📋</div>
+        <div><h2>After the Visit — Integrated Care Plan</h2><p>All context from both visits is now synthesized. HealthBridge prepares Dorothy for Visit 3 with Dr. Patel.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-plum">HealthBridge · Visit 2 summary — plain language</div>
+          <h3 style="margin-bottom:12px;">Your visit with Dr. Okonkwo — what happened and what it means</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--off-white);"><span style="font-size:20px;">💊</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">New medication: Chlorthalidone 12.5mg once daily</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">A water pill that helps your kidneys remove extra sodium and lower blood pressure. Take it in the morning. Strong evidence in patients like you.</span></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--off-white);"><span style="font-size:20px;">🩸</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">Labs ordered: Lipid panel + potassium + kidney function</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Cholesterol test will help decide if a statin is needed. Potassium checked because diuretics can lower it. HealthBridge will alert you when results are ready.</span></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">❤️</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">EKG was normal — good news</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Your heart rhythm and electrical pattern looked healthy. Echocardiogram may be ordered at next visit if BP doesn't improve.</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-plum">Action plan · visit 2</div>
+          <h3>Next steps</h3>
+          <ul class="check-list" id="cl-v2">
+            <li class="check-item"><div class="check-box chk-teal" onclick="toggleCheck(this)"></div><span class="check-text">Pick up Chlorthalidone (take in morning)</span></li>
+            <li class="check-item"><div class="check-box chk-teal" onclick="toggleCheck(this)"></div><span class="check-text">Get lipid panel + potassium labs this week</span></li>
+            <li class="check-item"><div class="check-box chk-teal" onclick="toggleCheck(this)"></div><span class="check-text">Continue daily morning BP log — goal: below 130/80</span></li>
+            <li class="check-item"><div class="check-box chk-teal" onclick="toggleCheck(this)"></div><span class="check-text">Reduce sodium intake — aim for under 1,500mg/day</span></li>
+            <li class="check-item"><div class="check-box chk-teal" onclick="toggleCheck(this)"></div><span class="check-text">Review statin decision after lipid results</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-label cl-plum">Health snapshot · after visit 2</div>
+          <h3>Risk profile — 2 visits in</h3>
+          <div class="risk-label-row"><span>Cardiovascular risk</span><span style="color:var(--gold);">Moderate — being addressed</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:52%;background:var(--gold);"></div></div>
+          <div class="risk-label-row"><span>Blood pressure</span><span style="color:var(--crimson);">Elevated — new med started</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:58%;background:var(--crimson);"></div></div>
+          <div class="risk-label-row"><span>Kidney function</span><span style="color:var(--teal);">Stable — monitored</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:35%;background:var(--teal);"></div></div>
+          <div class="risk-label-row"><span>Care coordination</span><span style="color:var(--sage);">Good — 2 of 3 synced</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:67%;background:var(--sage);"></div></div>
+        </div>
+        <div class="card full">
+          <div class="card-label cl-plum">Coming up · Visit 3 preview</div>
+          <div class="ai-bubble ab-plum"><div class="ai-label cl-plum">🤖 HealthBridge</div><p>"Dorothy, your OB-GYN visit is next. I'll carry everything from both visits — your A1c, BP trends, new medications, and sleep symptoms — so Dr. Patel has the full picture. The goal: get your HRT optimized in a way that's safe given your heart and kidney situation."</p></div>
+          <div class="insight-row">
+            <div class="insight-box"><div class="insight-icon">😴</div><div class="insight-title">Sleep log</div><div class="insight-sub">14 nights tracked · avg 5.2 hrs</div></div>
+            <div class="insight-box"><div class="insight-icon">🌡️</div><div class="insight-title">Hot flashes</div><div class="insight-sub">Avg 4–6/night logged</div></div>
+            <div class="insight-box"><div class="insight-icon">📈</div><div class="insight-title">Glucose spikes</div><div class="insight-sub">Correlate with poor sleep nights</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="journey-bar">
+      <div class="jb-label">Dorothy's care journey</div>
+      <div class="jb-track">
+        <div class="jb-step jb-complete"><div class="jb-dot">✓</div><div>Visit 1 · Endo</div></div>
+        <div class="jb-conn jb-done"></div>
+        <div class="jb-step jb-active-v2"><div class="jb-dot">2</div><div>Visit 2 · Cardio</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>Visit 3 · OB-GYN</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>Labs · Wk 10</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>3-mo Review</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     VISIT 3 — OB-GYN / MENOPAUSE
+═══════════════════════════════════════ -->
+<div class="visit-page" id="visit-3">
+  <div class="banner banner-v3">
+    <div class="banner-inner">
+      <div class="continuity-bar">
+        <div class="cont-dot v3"></div>
+        <div>
+          <div><strong>Full continuity active:</strong> HealthBridge is carrying Dorothy's complete clinical picture from both prior visits — A1c 7.9%, eGFR 62, BP avg 144/88, Jardiance + Chlorthalidone newly started, 14-night sleep log, and 30-day hot flash journal. Dr. Patel has received a pre-visit care summary.</div>
+          <div class="visit-chips">
+            <span class="vchip done">✓ Visit 1 · Endocrinology</span>
+            <span class="vchip done">✓ Visit 2 · Cardiology</span>
+            <span class="vchip current-v3">● Visit 3 · OB-GYN — today</span>
+          </div>
+        </div>
+      </div>
+      <div class="patient-row">
+        <div class="pat-avatar v3">DW</div>
+        <div style="flex:1;">
+          <div class="pat-name">Dorothy Williams</div>
+          <div class="pat-meta">55 years old · Atlanta, GA · Final specialist visit this cycle</div>
+          <div class="doc-chip"><div class="doc-av v3">SP</div><div><strong>Dr. Sunita Patel</strong><span>OB-GYN / Menopause Specialist · Emory Women's Health</span></div></div>
+          <div class="alert-pill v3">★ This visit completes Dorothy's integrated care cycle</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <nav class="phase-nav">
+      <button class="phase-btn v3-pre active" onclick="switchPhase('v3','pre')"><span class="pdot"></span>Before the Visit</button>
+      <button class="phase-btn v3-during" onclick="switchPhase('v3','during')"><span class="pdot"></span>During the Visit</button>
+      <button class="phase-btn v3-post" onclick="switchPhase('v3','post')"><span class="pdot"></span>After the Visit</button>
+      <button class="phase-btn v3-synth" onclick="switchPhase('v3','synth')"><span class="pdot"></span>★ Full Journey View</button>
+    </nav>
+
+    <!-- V3 PRE -->
+    <div class="phase-panel active" id="v3-pre">
+      <div class="section-head">
+        <div class="phase-icon pi-rose">🌸</div>
+        <div><h2>Before the Visit — Whole-Person Preparation</h2><p>Dorothy's appointment with Dr. Patel is in two days. HealthBridge surfaces sleep data, hot flash patterns, and critical cross-specialty context.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-rose">HealthBridge AI · Pre-visit briefing — menopause & hormones</div>
+          <div class="ai-bubble ab-rose"><div class="ai-label cl-rose">🤖 HealthBridge</div><p>"Dorothy, this visit is different from the others. Dr. Patel needs to understand not just your menopausal symptoms, but how your hormones are interacting with your diabetes and heart health. I've tracked your sleep and hot flashes for 14 nights, and the pattern is clear: your worst glucose readings happen after your worst nights of sleep. This is the visit where we connect those dots."</p></div>
+          <div class="ai-bubble ab-gold"><div class="ai-label cl-gold">⚠ Critical context for Dr. Patel from prior visits</div><p>"Dr. Rivera and Dr. Okonkwo both flagged that optimizing your HRT could improve glucose control and lower your blood pressure variability. Dr. Patel already received a summary — but you should know this going in so you can advocate for a comprehensive conversation, not just a symptom checklist."</p></div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-rose">14-night sleep log · HealthBridge tracked</div>
+          <h3>Sleep quality — shared with Dr. Patel</h3>
+          <div class="sleep-row"><div class="sleep-day">Wk 1</div><div class="sleep-track"><div class="sleep-fill sf-poor" style="width:47%;"></div></div><div class="sleep-val" style="color:var(--rose);">3.8 hrs</div></div>
+          <div class="sleep-row"><div class="sleep-day">Wk 2</div><div class="sleep-track"><div class="sleep-fill sf-fair" style="width:55%;"></div></div><div class="sleep-val" style="color:var(--gold);">4.5 hrs</div></div>
+          <div class="sleep-row"><div class="sleep-day">Wk 3</div><div class="sleep-track"><div class="sleep-fill sf-poor" style="width:44%;"></div></div><div class="sleep-val" style="color:var(--rose);">3.6 hrs</div></div>
+          <div class="sleep-row"><div class="sleep-day">Wk 4</div><div class="sleep-track"><div class="sleep-fill sf-fair" style="width:62%;"></div></div><div class="sleep-val" style="color:var(--gold);">5.1 hrs</div></div>
+          <div class="sleep-target"></div>
+          <div style="font-size:11px;color:var(--text-muted);">Avg: <strong style="color:var(--rose);">4.25 hrs/night</strong> · Hot flashes/night: <strong style="color:var(--rose);">4–7</strong></div>
+          <div class="ai-bubble ab-rose" style="margin-top:10px;margin-bottom:0;"><div class="ai-label cl-rose">🤖 Insight</div><p>"On the 3 nights with worst sleep, Dorothy's morning fasting glucose was 22% higher on average. Sleep is a metabolic lever."</p></div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-rose">Hormonal context · visit snapshot</div>
+          <h3>What Dr. Patel will be evaluating</h3>
+          <div class="hormone-grid">
+            <div class="h-box"><div class="h-label">Current HRT</div><div class="h-val" style="font-size:15px;color:var(--gold);">Patch</div><div class="h-sub">Estradiol 0.05mg/day — 8 months</div></div>
+            <div class="h-box"><div class="h-label">Hot flashes</div><div class="h-val" style="color:var(--rose);">4–7</div><div class="h-sub">Per night · persistent</div></div>
+            <div class="h-box"><div class="h-label">Sleep avg</div><div class="h-val" style="color:var(--rose);">4.25</div><div class="h-sub">Hours/night · below target</div></div>
+            <div class="h-box"><div class="h-label">Last FSH</div><div class="h-val" style="color:var(--rose);">68</div><div class="h-sub">mIU/mL · confirms perimenopause</div></div>
+            <div class="h-box"><div class="h-label">Estradiol</div><div class="h-val" style="color:var(--gold);">28</div><div class="h-sub">pg/mL · low-normal</div></div>
+            <div class="h-box"><div class="h-label">Mood</div><div class="h-val" style="font-size:14px;color:var(--gold);">Mild</div><div class="h-sub">Anxiety past 3 weeks</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-rose">Smart questions · menopause focus</div>
+          <h3>Your questions for Dr. Patel</h3>
+          <ul class="q-list">
+            <li><span class="q-num qn-rose">1</span>Is my current estradiol patch dose strong enough? I'm having 4–6 hot flashes a night.</li>
+            <li><span class="q-num qn-rose">2</span>My endocrinologist said hormones could affect my blood sugar. Is that true?</li>
+            <li><span class="q-num qn-rose">3</span>I'm only getting 4 hours of sleep. What can we do about that specifically?</li>
+            <li><span class="q-num qn-rose">4</span>Is HRT safe for me given my hypertension and kidney issues?</li>
+            <li><span class="q-num qn-rose">5</span>Should I be taking progesterone alongside estrogen?</li>
+          </ul>
+        </div>
+        <div class="card full gold-alert">
+          <div class="card-label cl-gold">HealthBridge equity insight</div>
+          <h3>What your doctor should know about you specifically</h3>
+          <div class="ai-bubble ab-gold"><div class="ai-label cl-gold">🤖 HealthBridge</div><p>"Black women are significantly more likely to experience severe menopausal symptoms and less likely to be offered HRT. Research shows Black women report more frequent and more intense hot flashes than white women — yet receive fewer treatment options. You have every right to ask for the same standard of care. Dr. Patel is well-positioned to provide it."</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V3 DURING -->
+    <div class="phase-panel" id="v3-during">
+      <div class="section-head">
+        <div class="phase-icon pi-lavender">💬</div>
+        <div><h2>During the Visit — Connecting Every Thread</h2><p>Dorothy is with Dr. Patel. This visit brings all three clinical conversations together — hormones, glucose, blood pressure, sleep — in one room for the first time.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-lavender">Live session · OB-GYN / Menopause · Dr. Patel</div>
+          <h3 style="margin-bottom:10px;">Visit transcript — plain language mode on</h3>
+          <div class="transcript-box">
+            <div class="tline"><strong style="color:var(--rose-dark);">Dr. Patel:</strong> Dorothy, I reviewed the HealthBridge summary from Dr. Rivera and Dr. Okonkwo before you arrived. This is incredibly helpful — I rarely get this kind of cross-specialty context before a visit. Let's talk about what's going on.</div>
+            <div class="tline tai tai-connect">🔗 <em>HealthBridge connected the care teams. Dr. Patel has your full clinical picture before you said a word — this is how care should work.</em></div>
+            <div class="tline"><strong style="color:var(--gold);">Dorothy:</strong> I'm exhausted. The hot flashes are every night. I feel like I'm not sleeping at all, and I've been more anxious lately too.</div>
+            <div class="tline"><strong style="color:var(--rose-dark);">Dr. Patel:</strong> Your sleep log tells the story — averaging just over 4 hours. That's not manageable long-term, and the data HealthBridge shared shows it's directly spiking your morning glucose. Your current estradiol patch at 0.05mg isn't adequate. I want to increase it to 0.1mg and add micronized progesterone 100mg nightly — which also helps with sleep.</div>
+            <div class="tline tai tai-lavender">💡 <em>Micronized progesterone is a natural form of progesterone. At a low dose taken at night, it has a mild sedative effect that can genuinely improve sleep — this is well-supported by research.</em></div>
+            <div class="tline"><strong style="color:var(--gold);">Dorothy:</strong> Is it safe to increase my hormones with my blood pressure and kidney issues?</div>
+            <div class="tline"><strong style="color:var(--rose-dark);">Dr. Patel:</strong> Transdermal estrogen — through the skin, like your patch — does not increase blood clot or stroke risk the way oral estrogen pills do. It's actually the safer route for women with cardiovascular risk. Dr. Okonkwo's notes confirm your EKG is normal, so I'm comfortable proceeding.</div>
+            <div class="tline tai tai-lavender">💡 <em>Transdermal = through the skin. Patches and gels bypass the liver, which means less impact on blood pressure and clotting than estrogen pills. Dorothy is already on the right form of HRT.</em></div>
+            <div class="tline"><strong style="color:var(--rose-dark);">Dr. Patel:</strong> I'm also going to refer you to a CBT-I program — cognitive behavioral therapy for insomnia. It's more effective than sleep medication long-term and has no drug interactions.</div>
+            <div class="tline tai tai-gold">⚑ <em>HealthBridge note: CBT-I is first-line treatment for chronic insomnia — ask about telehealth options so Dorothy can access this from home.</em></div>
+            <div class="tline"><strong style="color:var(--rose-dark);">Dr. Patel:</strong> I'm going to send notes directly to both Dr. Rivera and Dr. Okonkwo today. Better sleep and hormone balance should actually help your A1c and blood pressure — they'll want to know this is in motion.</div>
+            <div class="tline tai tai-connect">🔗 <em>All three specialists will now be synchronized for the first time. HealthBridge will confirm when all updates are received.</em></div>
+          </div>
+        </div>
+        <div class="card full">
+          <div class="card-label cl-lavender">Decision support · HRT adjustment</div>
+          <h3>Dr. Patel is updating your hormone therapy. Here's what's changing and why.</h3>
+          <div class="compare-grid">
+            <div class="cmp-card"><div class="cmp-badge cb-cur">Current</div><h4>Estradiol patch 0.05mg/day</h4><p>Started 8 months ago. Insufficient — hot flashes persisting nightly, sleep not improving.</p><ul class="cmp-list cons"><li>Partial symptom control only</li><li>Sleep not improving</li><li>No progesterone added</li></ul></div>
+            <div class="cmp-card selected"><div class="cmp-badge cb-upd">Updated plan</div><h4>Estradiol 0.1mg + Progesterone 100mg nightly</h4><p>Doubled estradiol dose for better control. Progesterone added for uterine protection and sleep benefit.</p><ul class="cmp-list pros-rose"><li>Transdermal — safe for BP/clot risk</li><li>Progesterone aids sleep directly</li><li>Evidence-based for perimenopausal Black women</li><li>Coordinates with cardiac + diabetes goals</li></ul></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-lavender">Coaching nudges · right now</div>
+          <h3>Ask Dr. Patel before you leave</h3>
+          <ul class="q-list">
+            <li><span class="q-num qn-lavender">!</span>"Is there a telehealth CBT-I program covered by my insurance?"</li>
+            <li><span class="q-num qn-lavender">!</span>"How long before I notice a difference in sleep with progesterone?"</li>
+            <li><span class="q-num qn-lavender">!</span>"When will you follow up with Dr. Rivera about my glucose?"</li>
+            <li><span class="q-num qn-lavender">!</span>"Should I track my hot flashes differently going forward?"</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-label cl-lavender">Whole-person care</div>
+          <h3>You are more than your lab numbers</h3>
+          <div class="ai-bubble ab-lavender"><div class="ai-label cl-lavender">🤖 HealthBridge</div><p>"Dorothy — you came in today exhausted, anxious, and managing three chronic conditions across three specialists. You asked the right questions. You pushed back. You advocated for yourself. That matters just as much as any prescription. HealthBridge exists to make sure you never have to navigate this alone."</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V3 POST -->
+    <div class="phase-panel" id="v3-post">
+      <div class="section-head">
+        <div class="phase-icon pi-sage">📋</div>
+        <div><h2>After the Visit — Three Specialists, One Plan</h2><p>All three visits are complete. HealthBridge synthesizes Dorothy's full updated plan and confirms all three doctors are now aligned for the first time.</p></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card full">
+          <div class="card-label cl-sage">HealthBridge · Visit 3 summary — plain language</div>
+          <h3 style="margin-bottom:12px;">Your visit with Dr. Patel — what happened and what it means</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--off-white);"><span style="font-size:20px;">💊</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">Estradiol patch increased to 0.1mg/day</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Doubles your estrogen dose for better hot flash and mood control. Change weekly as before. Give it 4–6 weeks to feel the full difference.</span></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--off-white);"><span style="font-size:20px;">🌙</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">New medication: Progesterone 100mg at bedtime</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Protects your uterine lining AND has a calming, sleep-promoting effect. Take it at night — it may make you drowsy, which is the goal.</span></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--off-white);"><span style="font-size:20px;">🧠</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">Referred to CBT-I — cognitive behavioral therapy for insomnia</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">The most effective long-term treatment for insomnia — better than sleeping pills. Telehealth options available. No drug interactions.</span></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🔗</span><div><strong style="display:block;font-weight:500;color:var(--text-dark);margin-bottom:3px;">All three specialists are now synchronized</strong><span style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">Dr. Patel sent clinical notes to Dr. Rivera and Dr. Okonkwo today. Better sleep + improved hormones should lower your A1c and reduce BP variability.</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label cl-sage">Final action plan · visit 3</div>
+          <h3>Next steps</h3>
+          <ul class="check-list" id="cl-v3">
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Pick up Progesterone 100mg (bedtime only)</span></li>
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Switch to Estradiol 0.1mg patch at next change</span></li>
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Enroll in telehealth CBT-I (check insurance)</span></li>
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">Continue hot flash + sleep log in HealthBridge</span></li>
+            <li class="check-item"><div class="check-box chk-plum" onclick="toggleCheck(this)"></div><span class="check-text">6-week follow-up with Dr. Patel</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-label cl-sage">Health snapshot · after all 3 visits</div>
+          <h3>Risk profile — fully addressed</h3>
+          <div class="risk-label-row"><span>Cardiovascular risk</span><span style="color:var(--gold);">Moderate — actively managed</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:45%;background:var(--gold);"></div></div>
+          <div class="risk-label-row"><span>Glucose control</span><span style="color:var(--gold);">Improving — Jardiance + sleep</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:42%;background:var(--gold);"></div></div>
+          <div class="risk-label-row"><span>Blood pressure</span><span style="color:var(--teal);">Being addressed</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:48%;background:var(--teal);"></div></div>
+          <div class="risk-label-row"><span>Sleep quality</span><span style="color:var(--rose);">Poor → intervention started</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:30%;background:var(--rose);"></div></div>
+          <div class="risk-label-row"><span>Care coordination</span><span style="color:var(--sage);">Excellent — all 3 synced ✓</span></div>
+          <div class="risk-bar"><div class="risk-fill" style="width:95%;background:var(--sage);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V3 SYNTHESIS / FULL JOURNEY VIEW -->
+    <div class="phase-panel" id="v3-synth">
+      <div class="synth-hero">
+        <div class="sh-label">Full journey view · Dorothy Williams</div>
+        <h2>Three visits. One coordinated patient.</h2>
+        <p>In two weeks, Dorothy went from three disconnected specialist appointments to a fully integrated care plan — with every doctor informed, every medication reviewed for interactions, and every clinical thread connected. This is what HealthBridge does.</p>
+      </div>
+
+      <div class="synth-stats">
+        <div class="synth-stat"><div class="ss-num" style="color:var(--sage);">3</div><div class="ss-label">Specialists coordinated for the first time</div></div>
+        <div class="synth-stat"><div class="ss-num" style="color:var(--rose);">2</div><div class="ss-label">New medications added with full cross-check</div></div>
+        <div class="synth-stat"><div class="ss-num" style="color:var(--gold);">1</div><div class="ss-label">Drug interaction caught before prescribing</div></div>
+        <div class="synth-stat"><div class="ss-num" style="color:var(--lavender);">0</div><div class="ss-label">Times Dorothy repeated her history to a new doctor</div></div>
+      </div>
+
+      <div class="spec-row-synth">
+        <div class="spec-card-s sc-endo"><div class="sc-label">Visit 1 · Endocrinology</div><h4>Dr. Rivera</h4><ul><li>A1c 7.9% — glucose control suboptimal</li><li>eGFR 62 — Stage 2 CKD confirmed</li><li>Jardiance added (glucose + kidney)</li><li>HRT-glucose interaction flagged</li><li>3-month labs ordered</li></ul></div>
+        <div class="spec-card-s sc-cardio"><div class="sc-label">Visit 2 · Cardiology</div><h4>Dr. Okonkwo</h4><ul><li>BP avg 144/88 — Stage 2 hypertension</li><li>Chlorthalidone added (evidence-based)</li><li>EKG normal — heart rhythm healthy</li><li>Simvastatin interaction avoided ✓</li><li>Lipid panel ordered — statin TBD</li></ul></div>
+        <div class="spec-card-s sc-obgyn"><div class="sc-label">Visit 3 · OB-GYN / Menopause</div><h4>Dr. Patel</h4><ul><li>Sleep avg 4.25 hrs — clinically inadequate</li><li>Estradiol increased to 0.1mg patch</li><li>Progesterone 100mg added</li><li>CBT-I referral — first-line insomnia Rx</li><li>All 3 specialists now synchronized ✓</li></ul></div>
+      </div>
+
+      <div class="card full">
+        <div class="card-label cl-sage">Dorothy's complete medication list · post all 3 visits</div>
+        <h3 style="margin-bottom:12px;">Full regimen — 8 medications, 3 specialists, zero conflicts</h3>
+        <table class="med-table">
+          <thead><tr><th>Medication</th><th>Dose</th><th>Purpose</th><th>Prescriber</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Metformin</td><td>1000mg · twice daily</td><td>Blood sugar (type 2 diabetes)</td><td>Dr. Rivera</td><td><span class="mtag mt-ex">Ongoing</span></td></tr>
+            <tr><td>Lisinopril</td><td>10mg · once daily</td><td>Blood pressure + kidney protection</td><td>Dr. Okonkwo</td><td><span class="mtag mt-ex">Ongoing</span></td></tr>
+            <tr><td>Amlodipine</td><td>5mg · once daily</td><td>Blood pressure</td><td>Dr. Okonkwo</td><td><span class="mtag mt-ex">Ongoing</span></td></tr>
+            <tr><td>Vitamin D3</td><td>2000 IU · daily</td><td>Bone + immune health</td><td>Self / PCP</td><td><span class="mtag mt-ex">Ongoing</span></td></tr>
+            <tr><td>Jardiance (Empagliflozin)</td><td>10mg · once daily (morning)</td><td>Blood sugar + kidney + heart</td><td>Dr. Rivera</td><td><span class="mtag mt-v1">Visit 1</span></td></tr>
+            <tr><td>Chlorthalidone</td><td>12.5mg · once daily (morning)</td><td>Blood pressure — diuretic</td><td>Dr. Okonkwo</td><td><span class="mtag mt-v2">Visit 2</span></td></tr>
+            <tr><td>Estradiol patch</td><td>0.1mg/day · weekly</td><td>Hot flashes, mood, bone density</td><td>Dr. Patel</td><td><span class="mtag mt-v3">Visit 3 ↑</span></td></tr>
+            <tr><td>Progesterone (micronized)</td><td>100mg · at bedtime</td><td>Uterine protection + sleep</td><td>Dr. Patel</td><td><span class="mtag mt-v3">Visit 3 new</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card full">
+        <div class="card-label cl-sage">What happens next · Dorothy's 6-month roadmap</div>
+        <h3 style="margin-bottom:12px;">HealthBridge will guide Dorothy through every upcoming step</h3>
+        <div class="roadmap-grid">
+          <div><div class="rm-header rh-now">Right now</div><div class="rm-items"><div class="rm-item">Pick up Progesterone + new Estradiol patch</div><div class="rm-item">Enroll in CBT-I telehealth</div><div class="rm-item">Get lipid panel labs done</div><div class="rm-item">Daily BP log continues</div></div></div>
+          <div><div class="rm-header rh-m1">Month 1–2</div><div class="rm-items"><div class="rm-item">Sleep improving? Tracked nightly</div><div class="rm-item">Hot flash frequency drops — log daily</div><div class="rm-item">Lipid results → statin decision</div><div class="rm-item">6-week Dr. Patel follow-up</div></div></div>
+          <div><div class="rm-header rh-m3">Month 3</div><div class="rm-items"><div class="rm-item">A1c recheck — target below 7.5%</div><div class="rm-item">BMP + eGFR kidney panel</div><div class="rm-item">Potassium check (Chlorthalidone)</div><div class="rm-item">BP target review — goal 130/80</div></div></div>
+          <div><div class="rm-header rh-m6">Month 6</div><div class="rm-items"><div class="rm-item">Full 3-specialist coordination review</div><div class="rm-item">Echocardiogram if BP elevated</div><div class="rm-item">HRT dose re-evaluation</div><div class="rm-item">CBT-I outcome assessment</div></div></div>
+        </div>
+      </div>
+
+      <div class="pitch-close">
+        <h3>Dorothy didn't just see three doctors. She got one plan.</h3>
+        <p>Before HealthBridge, Dorothy would have left three appointments with three different instructions, no shared notes, a near-miss drug interaction, and no one watching the connections between her blood sugar, her blood pressure, and her sleep. HealthBridge changed that — not by replacing her doctors, but by making sure every conversation they had was grounded in the same truth.</p>
+      </div>
+    </div>
+
+    <div class="journey-bar">
+      <div class="jb-label">Dorothy's complete care journey</div>
+      <div class="jb-track">
+        <div class="jb-step jb-complete"><div class="jb-dot">✓</div><div>Visit 1 · Endo</div></div>
+        <div class="jb-conn jb-done"></div>
+        <div class="jb-step jb-complete"><div class="jb-dot">✓</div><div>Visit 2 · Cardio</div></div>
+        <div class="jb-conn jb-done"></div>
+        <div class="jb-step jb-active-v3"><div class="jb-dot">3</div><div>Visit 3 · OB-GYN</div></div>
+        <div class="jb-conn jb-done"></div>
+        <div class="jb-step jb-active-synth"><div class="jb-dot">→</div><div>Follow-up plan</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>Labs · Wk 10</div></div>
+        <div class="jb-conn"></div>
+        <div class="jb-step"><div class="jb-dot"></div><div>3-mo Review</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">
+  HealthBridge · Dorothy Williams · Full Patient Journey Demo · For pitch and illustration purposes only · Not medical advice · HIPAA-compliant architecture in production
+</footer>
+
+<script>
+/* ── VISIT SWITCHING ── */
+function switchVisit(n) {
+  document.querySelectorAll('.visit-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.vnav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('visit-' + n).classList.add('active');
+  document.querySelector('[data-visit="' + n + '"]').classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+
+  // mark previous visits as complete in nav
+  document.querySelectorAll('.vnav-btn').forEach(b => {
+    const v = parseInt(b.getAttribute('data-visit'));
+    if (v < n) {
+      b.classList.add('complete');
+      const dot = b.querySelector('.vnav-dot');
+      if (dot) dot.style.background = 'var(--sage)';
+    }
+  });
+}
+
+/* ── PHASE SWITCHING ── */
+function switchPhase(visit, phase) {
+  // deactivate all phase buttons and panels in this visit
+  const vEl = document.getElementById('visit-' + visit.replace('v',''));
+  if (!vEl) return;
+  vEl.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+  vEl.querySelectorAll('.phase-panel').forEach(p => p.classList.remove('active'));
+
+  // activate correct button
+  const btn = vEl.querySelector('.' + visit + '-' + phase);
+  if (btn) btn.classList.add('active');
+
+  // activate correct panel
+  const panel = document.getElementById(visit + '-' + phase);
+  if (panel) panel.classList.add('active');
+}
+
+/* ── CHECKLIST ── */
+function toggleCheck(box) {
+  box.classList.toggle('checked');
+  const item = box.closest('.check-item');
+  item.classList.toggle('done');
+  box.textContent = box.classList.contains('checked') ? '✓' : '';
+}
+
+/* ── VISIT 4 = FULL JOURNEY (redirects to v3 synthesis tab) ── */
+const origSwitch = switchVisit;
+function switchVisit(n) {
+  if (n === 4) {
+    // show visit 3 with synthesis tab active
+    document.querySelectorAll('.visit-page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.vnav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('visit-3').classList.add('active');
+    document.querySelector('[data-visit="4"]').classList.add('active');
+    // activate synthesis tab
+    switchPhase('v3','synth');
+    // mark all visits complete in nav
+    document.querySelectorAll('.vnav-btn').forEach(b => {
+      const v = parseInt(b.getAttribute('data-visit'));
+      if (v <= 3) {
+        b.classList.add('complete');
+        const dot = b.querySelector('.vnav-dot');
+        if (dot) dot.style.background = 'var(--sage)';
+      }
+    });
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    return;
+  }
+  document.querySelectorAll('.visit-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.vnav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('visit-' + n).classList.add('active');
+  document.querySelector('[data-visit="' + n + '"]').classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  document.querySelectorAll('.vnav-btn').forEach(b => {
+    const v = parseInt(b.getAttribute('data-visit'));
+    if (v < n) {
+      b.classList.add('complete');
+      const dot = b.querySelector('.vnav-dot');
+      if (dot) dot.style.background = 'var(--sage)';
+    }
+  });
+}
+</script>
+</body>
+</html>
